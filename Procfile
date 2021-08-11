@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run calculadra.py
+web: sh setup.sh && streamlit run calculadora.py
