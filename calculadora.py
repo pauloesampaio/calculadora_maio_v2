@@ -46,5 +46,7 @@ st.write(f"Preço previsto: R$ {prediction:,.2f}")
 mensagem = st.text_input("Envie seu feedback")
 
 with open("./report/mensagem_usuario.txt", "a") as f:
+    print("Escrevendo mensagem")
+    print(f"{mensagem"})
     f.write(mensagem)
     f.write("\n")
