@@ -56,7 +56,7 @@ if st.button(label="Enviar"):
     
 if st.button(label="Upload to GCP"):
     GCP_CREDS = json.loads(os.environ.get('GCP_CREDENTIALS'))
-    creds = service_account.Credentials.from_service_account_info(credentials)
+    creds = service_account.Credentials.from_service_account_info(GCP_CREDS)
     storage_client = storage.Client(project="test-prefect", credentials=creds)
     msgs_df = pd.read_csv("./report/msgs_df.csv")
     st.dataframe(msgs_df)
