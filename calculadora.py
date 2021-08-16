@@ -5,8 +5,9 @@ import os
 from catboost import CatBoostRegressor
 from google.oauth2 import service_account
 from google.cloud import storage
+import json
 
-GCP_CREDS = os.environ.get('GCP_CREDENTIALS')
+GCP_CREDS = json.loads(os.environ.get('GCP_CREDENTIALS'))
 
 @st.cache()
 def get_gcp_client(credentials):
