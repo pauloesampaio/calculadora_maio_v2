@@ -59,7 +59,6 @@ if st.button(label="Upload to GCP"):
     GCP_CREDS = json.loads(os.environ.get('GCP_CREDENTIALS'))
     creds = service_account.Credentials.from_service_account_info(credentials)
     storage_client = storage.Client(project="test-prefect", credentials=creds)
-    return storage_client
     msgs_df = pd.read_csv("./report/msgs_df.csv")
     st.dataframe(msgs_df)
     bucket = storage_client.bucket("prefect_data")
