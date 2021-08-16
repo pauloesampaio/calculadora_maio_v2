@@ -7,14 +7,6 @@ from google.oauth2 import service_account
 from google.cloud import storage
 import json
 
-GCP_CREDS = json.loads(os.environ.get('GCP_CREDENTIALS'))
-
-@st.cache()
-def get_gcp_client(credentials):
-    creds = service_account.Credentials.from_service_account_info(credentials)
-    storage_client = storage.Client(project="test-prefect", credentials=creds)
-    return storage_client
-
 @st.cache()
 def loader(
     data_path="./data/model_input.csv",
@@ -64,6 +56,10 @@ if st.button(label="Enviar"):
     st.dataframe(msgs_df)
     
 if st.button(label="Upload to GCP"):
+    GCP_CREDS = json.loads(os.environ.get('GCP_CREDENTIALS'))
+    creds = service_account.Credentials.from_service_account_info(credentials)
+    storage_client = storage.Client(project="test-prefect", credentials=creds)
+    return storage_client
     msgs_df = pd.read_csv("./report/msgs_df.csv")
     st.dataframe(msgs_df)
     bucket = storage_client.bucket("prefect_data")
