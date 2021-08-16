@@ -2,7 +2,16 @@ import streamlit as st
 import pandas as pd
 import pickle
 from catboost import CatBoostRegressor
+from google.oauth2 import service_account
+from google.cloud import storage
 
+GCP_CREDS = os.environ.get('GCP_CREDENTIALS')
+
+@st.cache()
+def get_gcp_client(credentials):
+    creds = service_account.Credentials.from_service_account_info(credentials)
+    storage_client = storage.Client(project="test-prefect", credentials=creds)
+    return storage_client
 
 @st.cache()
 def loader(
@@ -20,6 +29,7 @@ def loader(
 
 
 model_input, data_pipeline, model = loader()
+storage_client = get_gcp_client(GCP_CREDS)
 st.title("Calculadora de imóveis")
 
 st.sidebar.title("Entre com as características do apartamento")
@@ -45,8 +55,16 @@ prediction = model.predict(novo_apto_normalizado)[0]
 st.write(f"Preço previsto: R$ {prediction:,.2f}")
 mensagem = st.text_input("Envie seu feedback")
 
-with open("./report/mensagem_usuario.txt", "a") as f:
-    print("Escrevendo mensagem")
-    print(f"{mensagem}")
-    f.write(mensagem)
-    f.write("\n")
+if st.button(label="Enviar"):
+    msgs_df = pd.read_csv("./report/msgs_df.csv")
+    msgs_df.loc[len(msgs_df)] = [len(msgs_df), mensagem]
+    msgs_df.to_csv("./report/msgs_df.csv", index=False)
+    st.dataframe(msgs_df)
+    
+if st.button(label="Upload to GCP"):
+    msgs_df = pd.read_csv("./report/msgs_df.csv")
+    st.dataframe(msgs_df)
+    bucket = storage_client.bucket("prefect_data")
+    blob = bucket.blob("test_from_streamlit.csv")
+    blob.upload_from_string(msgs_df.to_csv(index=False))
+    
