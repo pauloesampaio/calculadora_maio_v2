@@ -23,7 +23,6 @@ def loader(
 
 
 model_input, data_pipeline, model = loader()
-storage_client = get_gcp_client(GCP_CREDS)
 st.title("Calculadora de imóveis")
 
 st.sidebar.title("Entre com as características do apartamento")
