@@ -4,8 +4,9 @@ import pickle
 import os
 from catboost import CatBoostRegressor
 from google.oauth2 import service_account
-from google.cloud import storage
+from google.cloud import bigquery
 import json
+from datetime import datetime
 
 @st.cache()
 def loader(
@@ -49,18 +50,18 @@ st.write(f"Preço previsto: R$ {prediction:,.2f}")
 mensagem = st.text_input("Envie seu feedback")
 
 if st.button(label="Enviar"):
-    msgs_df = pd.read_csv("./report/msgs_df.csv")
-    msgs_df.loc[len(msgs_df)] = [len(msgs_df), mensagem]
-    msgs_df.to_csv("./report/msgs_df.csv", index=False)
-    st.dataframe(msgs_df)
-    
-if st.button(label="Upload to GCP"):
     GCP_CREDS = json.loads(os.environ.get('GCP_CREDENTIALS'))
     creds = service_account.Credentials.from_service_account_info(GCP_CREDS)
-    storage_client = storage.Client(project="test-prefect", credentials=creds)
-    msgs_df = pd.read_csv("./report/msgs_df.csv")
+    client = bigquery.Client(credentials=creds)
+    now = datetime.now().strftime("%Y%m%d")
+    client.insert_rows_json("test-prefect.calculadora.mensagens", [{"data": now, "mensagens": mensagem}])
+    client.close()
+
+if st.button(label="Ver mensagens"):
+    GCP_CREDS = json.loads(os.environ.get('GCP_CREDENTIALS'))
+    creds = service_account.Credentials.from_service_account_info(GCP_CREDS)
+    client = bigquery.Client(credentials=creds)
+    msgs_df = client.query("SELECT * FROM test-prefect.calculadora.mensagens").result().to_dataframe()
+    client.close()
     st.dataframe(msgs_df)
-    bucket = storage_client.bucket("prefect_data")
-    blob = bucket.blob("test_from_streamlit.csv")
-    blob.upload_from_string(msgs_df.to_csv(index=False))
-    
+
